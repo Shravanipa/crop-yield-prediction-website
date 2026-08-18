@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Portal — AgriForecast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,700;0,8..60,900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme-dark.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+</head>
+<body class="lp-body">
+
+<header class="lp-nav">
+  <a href="{{ url_for('home') }}" class="lp-brand" style="text-decoration:none;">
+    <svg width="34" height="34" viewBox="0 0 44 44" fill="none">
+      <circle cx="22" cy="22" r="21" fill="url(#bgGradLogin)"/>
+      <path d="M22 8c3.5 5 3.5 11 0 16-3.5-5-3.5-11 0-16z" fill="#0F2A1C"/>
+      <path d="M22 14c6 2.5 9 7 9 13-6-1.5-9-6-9-13z" fill="#166534"/>
+      <path d="M22 14c-6 2.5-9 7-9 13 6-1.5 9-6 9-13z" fill="#15803D"/>
+      <rect x="20" y="25" width="4" height="10" rx="1.5" fill="#052e1a"/>
+      <defs><radialGradient id="bgGradLogin" cx="40%" cy="30%" r="60%"><stop offset="0%" stop-color="#4ADE80"/><stop offset="100%" stop-color="#16A34A"/></radialGradient></defs>
+    </svg>
+    <span class="lp-brand-name">AgriForecast</span>
+  </a>
+  <div class="lp-nav-actions">
+    <a href="{{ url_for('home') }}" class="lp-btn lp-btn-ghost">← Back to Home</a>
+  </div>
+</header>
+
+<div class="auth-shell">
+  <!-- FORM SIDE -->
+  <div class="auth-form-side">
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <a href="{{ url_for('login', tab='login') }}" class="{{ 'active' if active_tab != 'signup' else '' }}">Secure Login</a>
+        <a href="{{ url_for('login', tab='signup') }}" class="{{ 'active' if active_tab == 'signup' else '' }}">Create Account</a>
+      </div>
+
+      {% if active_tab == 'signup' %}
+        <h1>Create your account</h1>
+        <p class="sub">Join AgriForecast and get instant, data-driven yield forecasts for your district.</p>
+        {% if signup_error %}<div class="auth-error">⚠️ {{ signup_error }}</div>{% endif %}
+        <form method="POST" action="{{ url_for('signup') }}">
+          <div class="auth-field">
+            <label>Full Name</label>
+            <input type="text" name="name" placeholder="e.g. Ramesh Kumar" value="{{ signup_name or '' }}" required>
+          </div>
+          <div class="auth-field">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="you@example.com" value="{{ signup_email or '' }}" required>
+          </div>
+          <div class="auth-field">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="At least 6 characters" minlength="6" required>
+          </div>
+          <div class="auth-row-between">
+            <label class="auth-check"><input type="checkbox" required style="accent-color:#22C55E;"> I agree to the Terms & Privacy Policy</label>
+          </div>
+          <button type="submit" class="lp-btn lp-btn-primary lp-btn-block lp-btn-lg">Verify &amp; Join</button>
+        </form>
+        <div class="auth-switch">Already have an account? <a href="{{ url_for('login', tab='login') }}">Secure Login</a></div>
+      {% else %}
+        <h1>Welcome back</h1>
+        <p class="sub">Log in to access your Analytics Hub and saved forecasts.</p>
+        {% if login_error %}<div class="auth-error">⚠️ {{ login_error }}</div>{% endif %}
+        <form method="POST" action="{{ url_for('signin') }}">
+          <input type="hidden" name="next" value="{{ request.args.get('next','') }}">
+          <div class="auth-field">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="you@example.com" value="{{ login_email or '' }}" required>
+          </div>
+          <div class="auth-field">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Your password" required>
+          </div>
+          <div class="auth-row-between">
+            <label class="auth-check"><input type="checkbox" style="accent-color:#22C55E;"> Remember me</label>
+            <a href="#">Forgot Password?</a>
+          </div>
+          <button type="submit" class="lp-btn lp-btn-primary lp-btn-block lp-btn-lg">Secure Access</button>
+        </form>
+        <div class="auth-switch">New to AgriForecast? <a href="{{ url_for('login', tab='signup') }}">Create an account</a></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- VISUAL SIDE — Team Sync -->
+  <div class="auth-visual">
+    <div class="avatar-network">
+      <svg width="360" height="360" style="position:absolute;inset:0;">
+        <line x1="180" y1="180" x2="80"  y2="80"  stroke="rgba(34,197,94,0.35)" stroke-width="1.5"/>
+        <line x1="180" y1="180" x2="290" y2="70"  stroke="rgba(34,197,94,0.35)" stroke-width="1.5"/>
+        <line x1="180" y1="180" x2="300" y2="230" stroke="rgba(34,197,94,0.35)" stroke-width="1.5"/>
+        <line x1="180" y1="180" x2="90"  y2="270" stroke="rgba(34,197,94,0.35)" stroke-width="1.5"/>
+        <line x1="180" y1="180" x2="200" y2="300" stroke="rgba(34,197,94,0.35)" stroke-width="1.5"/>
+      </svg>
+      <div class="an-node center" style="left:143px; top:143px;">🌾</div>
+      <div class="an-node n1" style="left:52px; top:52px;">RK</div>
+      <div class="an-node n2" style="left:262px; top:42px;">SP</div>
+      <div class="an-node n3" style="left:272px; top:202px;">AV</div>
+      <div class="an-node n4" style="left:62px; top:242px;">MD</div>
+      <div class="an-node n5" style="left:172px; top:272px;">NT</div>
+    </div>
+    <div class="auth-visual-caption">
+      <h3>Farmer &amp; Advisor Network</h3>
+      <p>Farmers, extension officers and lenders on one platform — sharing forecasts, insights and district-level intelligence.</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

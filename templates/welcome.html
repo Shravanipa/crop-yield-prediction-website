@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home — AgriForecast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,700;0,8..60,900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme-dark.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+</head>
+<body class="lp-body">
+
+<header class="lp-nav">
+  <div class="lp-brand">
+    <svg width="34" height="34" viewBox="0 0 44 44" fill="none">
+      <circle cx="22" cy="22" r="21" fill="url(#bgGradW)"/>
+      <path d="M22 8c3.5 5 3.5 11 0 16-3.5-5-3.5-11 0-16z" fill="#0F2A1C"/>
+      <path d="M22 14c6 2.5 9 7 9 13-6-1.5-9-6-9-13z" fill="#166534"/>
+      <path d="M22 14c-6 2.5-9 7-9 13 6-1.5 9-6 9-13z" fill="#15803D"/>
+      <rect x="20" y="25" width="4" height="10" rx="1.5" fill="#052e1a"/>
+      <defs><radialGradient id="bgGradW" cx="40%" cy="30%" r="60%"><stop offset="0%" stop-color="#4ADE80"/><stop offset="100%" stop-color="#16A34A"/></radialGradient></defs>
+    </svg>
+    <span class="lp-brand-name">AgriForecast</span>
+  </div>
+  <div class="lp-nav-actions">
+    <div class="user-chip">
+      <span class="user-avatar">{{ (current_user_name or 'F')[0]|upper }}</span>
+      <span class="user-name">{{ current_user_name }}</span>
+    </div>
+    <a href="{{ url_for('logout') }}" class="lp-btn lp-btn-ghost">Log Out</a>
+  </div>
+</header>
+
+<section class="welcome-hero">
+  <h1>Welcome back, <span>{{ current_user_name.split(' ')[0] if current_user_name else 'Farmer' }}</span> 👋</h1>
+  <p>AgriForecast — your farming partner. Jump into the Analytics Hub to run a fresh yield forecast, or explore what's new.</p>
+</section>
+
+<div class="tile-grid">
+  <a href="{{ url_for('dashboard') }}" class="tile primary">
+    <div class="icon">🗺️</div>
+    <h3>1. Analytics Hub</h3>
+    <p>India map, yield predictions, sensitivity graphs and weather intelligence — the full working dashboard.</p>
+  </a>
+  <a href="{{ url_for('dashboard') }}#weatherPanel" class="tile">
+    <div class="icon">⛅</div>
+    <h3>2. Weather Insights</h3>
+    <p>District-level temperature, humidity, rainfall and a 7-day outlook.</p>
+  </a>
+  <a href="{{ url_for('dashboard') }}#trendPanel" class="tile">
+    <div class="icon">📈</div>
+    <h3>3. Historical Trends</h3>
+    <p>16 years of state- and season-wise yield trend charts.</p>
+  </a>
+  <a href="{{ url_for('home') }}#community" class="tile">
+    <div class="icon">🤝</div>
+    <h3>4. Our Community</h3>
+    <p>Connect with farmers, extension officers and agri-lenders using AgriForecast.</p>
+  </a>
+  <a href="{{ url_for('home') }}#insights" class="tile">
+    <div class="icon">💡</div>
+    <h3>5. Latest Insights</h3>
+    <p>Read about the model, dataset and technology behind your forecasts.</p>
+  </a>
+  <a href="#contact-demo" class="tile">
+    <div class="icon">📅</div>
+    <h3>6. Request a Demo</h3>
+    <p>Talk to our team about using AgriForecast for your cooperative or lending desk.</p>
+  </a>
+</div>
+
+<div class="insight-row" id="insights">
+  <h2>Latest Insights</h2>
+  <div class="insight-cards">
+    <div class="insight-card">
+      <div class="tag">Crop Insurance</div>
+      <h4>Data in Crop Insurance</h4>
+      <p>How district-level yield forecasts help lenders price agricultural insurance more fairly.</p>
+    </div>
+    <div class="insight-card">
+      <div class="tag">Smallholder Innovation</div>
+      <h4>Smallholder Innovations</h4>
+      <p>Simple crop-recommendation tools are improving sowing decisions for smallholder farmers.</p>
+    </div>
+    <div class="insight-card">
+      <div class="tag">Model</div>
+      <h4>Inside the Random Forest</h4>
+      <p>A look at how AgriForecast's model reaches {{ '%.1f' % (metrics.r2*100) }}% R² on held-out data.</p>
+    </div>
+  </div>
+</div>
+
+<footer class="lp-footer" id="contact-demo">
+  <div class="lp-footer-inner">
+    <div>
+      <div class="lp-brand"><span class="lp-brand-name">AgriForecast</span></div>
+      <div class="lp-footer-tag">Data-driven crop yield intelligence for Indian farmers, lenders and agri-input companies.</div>
+    </div>
+    <div class="lp-footer-col">
+      <h4>Contact Info</h4>
+      <div>📞 932-336-8270</div>
+      <div>✉️ info@agriforecast.com</div>
+    </div>
+    <div class="lp-footer-col">
+      <h4>Site Map</h4>
+      <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('dashboard') }}">Analytics Hub</a>
+      <a href="{{ url_for('logout') }}">Log Out</a>
+    </div>
+  </div>
+  <div class="lp-footer-bottom">"AgriForecast — Data Driven, Farmer Led" · CIN: U62099PN2023PTC218917</div>
+</footer>
+
+</body>
+</html>

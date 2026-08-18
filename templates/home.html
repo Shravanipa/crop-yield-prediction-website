@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriForecast — AI Crop Yield Intelligence for India</title>
+<meta name="description" content="AI-powered crop yield prediction and planting recommendations for Indian farmers — weather insights, yield analytics, and district-level intelligence.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,700;0,8..60,900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme-dark.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+</head>
+<body class="lp-body">
+
+<!-- NAV -->
+<header class="lp-nav">
+  <div class="lp-brand">
+    <svg width="38" height="38" viewBox="0 0 44 44" fill="none">
+      <circle cx="22" cy="22" r="21" fill="url(#bgGradHome)"/>
+      <path d="M22 8c3.5 5 3.5 11 0 16-3.5-5-3.5-11 0-16z" fill="#0F2A1C"/>
+      <path d="M22 14c6 2.5 9 7 9 13-6-1.5-9-6-9-13z" fill="#166534"/>
+      <path d="M22 14c-6 2.5-9 7-9 13 6-1.5 9-6 9-13z" fill="#15803D"/>
+      <rect x="20" y="25" width="4" height="10" rx="1.5" fill="#052e1a"/>
+      <defs>
+        <radialGradient id="bgGradHome" cx="40%" cy="30%" r="60%">
+          <stop offset="0%" stop-color="#4ADE80"/><stop offset="100%" stop-color="#16A34A"/>
+        </radialGradient>
+      </defs>
+    </svg>
+    <span class="lp-brand-name">AgriForecast</span>
+  </div>
+  <nav class="lp-nav-links">
+    <a href="#solution">Solutions</a>
+    <a href="#insights">Insights</a>
+    <a href="#platform">Platform</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#community">Community</a>
+    <a href="#contact">Contact</a>
+  </nav>
+  <div class="lp-nav-actions">
+    {% if is_authenticated %}
+      <a href="{{ url_for('welcome') }}" class="lp-btn lp-btn-ghost">My Dashboard</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="lp-btn lp-btn-ghost">Login</a>
+      <a href="{{ url_for('login', tab='signup') }}" class="lp-btn lp-btn-primary">Get Started</a>
+    {% endif %}
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="lp-hero">
+  <div class="lp-hero-glow"></div>
+  <div class="lp-eyebrow"><span>🌾</span> AI-Powered · Random Forest ML · {{ states|length }} Indian States</div>
+  <h1>Weather insights for <em>smarter farming</em>,<br>before you sow a single seed.</h1>
+  <p>AgriForecast turns state, district, season and rainfall data into an instant crop-yield forecast — so farmers choose the right crop, lenders price risk fairly, and input suppliers plan with confidence.</p>
+  <div class="lp-hero-actions">
+    <a href="{{ url_for('login', tab='signup') }}" class="lp-btn lp-btn-primary lp-btn-lg">Get Started Free</a>
+    <a href="#platform" class="lp-btn lp-btn-ghost lp-btn-lg">Tour the Platform</a>
+  </div>
+  <div class="lp-feature-strip">
+    <div class="lf"><span class="lf-dot"></span> Weather Insights for Smarter Farming</div>
+    <div class="lf"><span class="lf-dot"></span> Crop Yield Analytics</div>
+    <div class="lf"><span class="lf-dot"></span> District-Level Prediction Signals</div>
+  </div>
+
+  <div class="lp-stats">
+    <div class="lp-stat"><div class="n">{{ '%.1f' % (metrics.r2*100) }}%</div><div class="l">Model R² Score</div></div>
+    <div class="lp-stat"><div class="n">{{ states|length }}</div><div class="l">States Covered</div></div>
+    <div class="lp-stat"><div class="n">{{ year_range[1]-year_range[0]+1 }}</div><div class="l">Years of Data</div></div>
+    <div class="lp-stat"><div class="n">{{ metrics.mae|int }}</div><div class="l">Avg MAE (kg/ha)</div></div>
+  </div>
+</section>
+
+<!-- PROBLEM / SOLUTION -->
+<section class="lp-section" id="solution">
+  <div class="lp-section-head">
+    <span class="tag">Why AgriForecast</span>
+    <h2>Planting decisions, backed by data — not guesswork</h2>
+    <p>Most Indian farmers choose crops on intuition alone, with no access to data-driven yield estimates — leading to wrong crop choices, over-procurement of inputs, and poor insurance pricing for agricultural lenders.</p>
+  </div>
+  <div class="lp-two-col">
+    <div class="lp-panel">
+      <h3>🎯 The Problem</h3>
+      <p>Without localized yield estimates, farmers over- or under-invest in seed, fertilizer and irrigation — and lenders can't price crop insurance fairly because they can't predict outcomes at the district level.</p>
+    </div>
+    <div class="lp-panel">
+      <h3>✅ Our Solution</h3>
+      <ul>
+        <li>A Random Forest regression model trained on state, district, season, crop, area sown and rainfall to predict expected yield per hectare.</li>
+        <li>A simple, mobile-friendly web tool — farmers or extension officers enter crop and location details and get a forecast instantly.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- KEY FEATURES -->
+<section class="lp-section" id="platform">
+  <div class="lp-section-head">
+    <span class="tag">Key Features</span>
+    <h2>Everything you need to plan the season ahead</h2>
+  </div>
+  <div class="lp-grid">
+    <div class="lp-card">
+      <div class="icon">🗺️</div>
+      <h3>Interactive India Map</h3>
+      <p>Click any state, then any district, to instantly load local rainfall and soil context into your forecast.</p>
+    </div>
+    <div class="lp-card">
+      <div class="icon">📊</div>
+      <h3>Yield Forecast per Crop</h3>
+      <p>Get a kg/hectare estimate for any crop–season–district combination, with a 90% confidence interval.</p>
+    </div>
+    <div class="lp-card">
+      <div class="icon">🌱</div>
+      <h3>Crop Recommendation</h3>
+      <p>Given a district and season, AgriForecast ranks every valid crop by predicted yield so you sow the best option.</p>
+    </div>
+    <div class="lp-card">
+      <div class="icon">📈</div>
+      <h3>Historical Trend Charts</h3>
+      <p>16 years of state- and season-wise yield trends, rendered as interactive line, bar and radar charts.</p>
+    </div>
+    <div class="lp-card">
+      <div class="icon">⛅</div>
+      <h3>Weather Intelligence</h3>
+      <p>Live-style temperature, humidity, rainfall, sunlight and a 7-day outlook, tailored to the selected district.</p>
+    </div>
+    <div class="lp-card">
+      <div class="icon">📱</div>
+      <h3>Mobile-Friendly Interface</h3>
+      <p>Built for field use — extension officers and farmers can run a full forecast from a phone in under a minute.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section class="lp-section" id="insights">
+  <div class="lp-panel" style="max-width:900px;margin:0 auto;">
+    <h3>⚙️ Technology Under the Hood</h3>
+    <p>A production-style ML pipeline — trained offline, served instantly, no external APIs required.</p>
+    <div class="lp-chip-row">
+      <span class="lp-chip">Python</span>
+      <span class="lp-chip">scikit-learn · Random Forest Regressor</span>
+      <span class="lp-chip">Flask REST API</span>
+      <span class="lp-chip">Pandas / NumPy</span>
+      <span class="lp-chip">HTML + CSS</span>
+      <span class="lp-chip">JavaScript · Canvas Charts</span>
+    </div>
+  </div>
+</section>
+
+<!-- COMMUNITY / CTA -->
+<section class="lp-section" id="community">
+  <div class="lp-panel" style="text-align:center;background:linear-gradient(150deg, rgba(34,197,94,0.14), rgba(34,197,94,0.03));">
+    <h3 style="justify-content:center;">🤝 Built for Farmers, Lenders & Extension Officers</h3>
+    <p style="max-width:560px;margin:8px auto 22px;">Join the community using AgriForecast for better crop selection, improved input procurement planning, and a fair data foundation for crop insurance.</p>
+    <a href="{{ url_for('login', tab='signup') }}" class="lp-btn lp-btn-primary lp-btn-lg">Create Your Free Account</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="lp-footer" id="contact">
+  <div class="lp-footer-inner">
+    <div>
+      <div class="lp-brand"><span class="lp-brand-name">AgriForecast</span></div>
+      <div class="lp-footer-tag">Data-driven crop yield intelligence for Indian farmers, lenders and agri-input companies.</div>
+    </div>
+    <div class="lp-footer-col">
+      <h4>Contact Info</h4>
+      <div>📞 932-336-8270</div>
+      <div>✉️ info@agriforecast.com</div>
+      <div>🌐 agriforecast.com</div>
+    </div>
+    <div class="lp-footer-col">
+      <h4>Site Map</h4>
+      <a href="{{ url_for('home') }}">Home</a>
+      <a href="#platform">Platform</a>
+      <a href="{{ url_for('login') }}">Login</a>
+    </div>
+    <div class="lp-footer-col">
+      <h4>Dataset</h4>
+      <div>Crop Production Statistics · India</div>
+      <div>Model R² {{ '%.1f' % (metrics.r2*100) }}% · {{ year_range[0] }}–{{ year_range[1] }}</div>
+    </div>
+  </div>
+  <div class="lp-footer-bottom">"AgriForecast — Data Driven, Farmer Led" · CIN: U62099PN2023PTC218917</div>
+</footer>
+
+</body>
+</html>

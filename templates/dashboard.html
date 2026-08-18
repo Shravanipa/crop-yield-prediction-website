@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriForecast — Crop Yield Intelligence · India</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme-dark.css') }}">
+<!-- Chart.js bundled locally — no CDN needed -->
+<script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
+</head>
+<body>
+
+<canvas id="particles-canvas"></canvas>
+<div class="crop-floaters" aria-hidden="true">
+  <span class="floater f1">🌾</span><span class="floater f2">🌽</span>
+  <span class="floater f3">🫘</span><span class="floater f4">🌿</span>
+  <span class="floater f5">🍃</span><span class="floater f6">🌻</span>
+</div>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark-wrap">
+      <svg class="brand-mark" viewBox="0 0 44 44" fill="none">
+        <circle cx="22" cy="22" r="21" fill="url(#bgGrad)"/>
+        <path d="M22 8c3.5 5 3.5 11 0 16-3.5-5-3.5-11 0-16z" fill="#4A6B3A"/>
+        <path d="M22 14c6 2.5 9 7 9 13-6-1.5-9-6-9-13z" fill="#6B8F58"/>
+        <path d="M22 14c-6 2.5-9 7-9 13 6-1.5 9-6 9-13z" fill="#4A6B3A"/>
+        <rect x="20" y="25" width="4" height="10" rx="1.5" fill="#3E2C1C"/>
+        <defs>
+          <radialGradient id="bgGrad" cx="40%" cy="30%" r="60%">
+            <stop offset="0%" stop-color="#F2C94C"/><stop offset="100%" stop-color="#D4A017"/>
+          </radialGradient>
+        </defs>
+      </svg>
+      <div class="brand-mark-glow"></div>
+    </div>
+    <div>
+      <div class="brand-name">AgriForecast</div>
+      <div class="brand-tag">Crop Yield Intelligence &nbsp;·&nbsp; India</div>
+    </div>
+  </div>
+  <nav class="topbar-center">
+    <div class="nav-pill">
+      <a href="#workspace" class="active">🗺️ Predict</a>
+      <a href="#weatherPanel">⛅ Weather</a>
+      <a href="#trendPanel">📈 Trends</a>
+    </div>
+  </nav>
+  <div class="topbar-right">
+    <div class="live-dot-wrap"><span class="live-dot"></span><span class="live-label">Live</span></div>
+    <a href="{{ url_for('home') }}" class="topbar-link">Home</a>
+    <div class="user-chip">
+      <span class="user-avatar">{{ (session.get('user_name') or 'F')[0]|upper }}</span>
+      <span class="user-name">{{ session.get('user_name', 'Farmer') }}</span>
+    </div>
+    <a href="{{ url_for('logout') }}" class="logout-btn" title="Log out">⏻</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-orb orb1"></div><div class="hero-bg-orb orb2"></div><div class="hero-bg-orb orb3"></div>
+  <div class="hero-eyebrow"><span class="live-dot"></span> AI-Powered · Random Forest ML · 16 Indian States · 4 Seasons</div>
+  <h1>Forecast your harvest <em>before</em> you sow.</h1>
+  <p class="lede">Click any state on the India map → click a district → fill crop details → get instant ML-powered yield forecasts, weather intelligence, soil profiles, sensitivity graphs and historical trends.</p>
+  <div class="stat-strip">
+    <div class="stat">
+      <svg class="stat-ring" viewBox="0 0 60 60">
+        <circle cx="30" cy="30" r="25" fill="none" stroke="var(--cream-dark)" stroke-width="4"/>
+        <circle cx="30" cy="30" r="25" fill="none" stroke="var(--terra)" stroke-width="4" stroke-dasharray="{{ '%.0f' % (metrics.r2 * 157) }} 157" stroke-linecap="round" transform="rotate(-90 30 30)"/>
+      </svg>
+      <span class="num" data-count="{{ '%.1f' % (metrics.r2*100) }}">0</span><span class="pct">%</span>
+      <span class="label">Model R² Score</span>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat">
+      <svg class="stat-ring" viewBox="0 0 60 60">
+        <circle cx="30" cy="30" r="25" fill="none" stroke="var(--cream-dark)" stroke-width="4"/>
+        <circle cx="30" cy="30" r="25" fill="none" stroke="var(--leaf-mid)" stroke-width="4" stroke-dasharray="{{ [states|length * 10, 157]|min }} 157" stroke-linecap="round" transform="rotate(-90 30 30)"/>
+      </svg>
+      <span class="num" data-count="{{ states|length }}">0</span>
+      <span class="label">States Covered</span>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat">
+      <svg class="stat-ring" viewBox="0 0 60 60">
+        <circle cx="30" cy="30" r="25" fill="none" stroke="var(--cream-dark)" stroke-width="4"/>
+        <circle cx="30" cy="30" r="25" fill="none" stroke="var(--sky)" stroke-width="4" stroke-dasharray="120 157" stroke-linecap="round" transform="rotate(-90 30 30)"/>
+      </svg>
+      <span class="num" data-count="{{ year_range[1] - year_range[0] + 1 }}">0</span>
+      <span class="label">Years of Data</span>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat">
+      <svg class="stat-ring" viewBox="0 0 60 60">
+        <circle cx="30" cy="30" r="25" fill="none" stroke="var(--cream-dark)" stroke-width="4"/>
+        <circle cx="30" cy="30" r="25" fill="none" stroke="var(--gold)" stroke-width="4" stroke-dasharray="80 157" stroke-linecap="round" transform="rotate(-90 30 30)"/>
+      </svg>
+      <span class="num" data-count="{{ metrics.mae|int }}">0</span>
+      <span class="label">Avg MAE (kg/ha)</span>
+    </div>
+  </div>
+</section>
+
+<div class="glow-divider"></div>
+
+<!-- WORKSPACE -->
+<main class="workspace" id="workspace">
+
+  <!-- MAP PANEL -->
+  <section class="panel map-panel glass-panel">
+    <div class="panel-header">
+      <div class="panel-title-group">
+        <span class="panel-icon-bubble map-icon-bubble">🗺️</span>
+        <div>
+          <h2>India Map</h2>
+          <p class="panel-sub" id="mapPanelSub">Step 1 — Click any state</p>
+        </div>
+      </div>
+      <div class="panel-badge" id="mapBadge">16 States</div>
+    </div>
+    <div class="map-panel-body">
+      <div class="map-scan"></div>
+
+      <!-- INDIA STATE MAP (shown when no state selected) -->
+      <div id="stateMapWrap">
+        <svg id="indiaMap" viewBox="0 0 360 440" class="map-india-outline"
+             aria-label="Clickable political map of India — click any coloured state to select it">
+          <defs>
+            <filter id="stateShadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(30,18,8,0.25)"/></filter>
+          </defs>
+          <g id="statePathGroup"></g>
+          <g id="rippleLayer"></g>
+        </svg>
+        <div class="map-tooltip" id="mapTooltip">
+          <div class="tt-name" id="ttName"></div>
+          <div class="tt-hint">Click to select</div>
+        </div>
+      </div>
+
+      <!-- DISTRICT MAP (shown after state selected) -->
+      <div id="districtMapWrap" style="display:none;">
+        <div class="district-map-header">
+          <button class="back-btn" id="backToStates">← Back to India</button>
+          <span class="district-map-title" id="districtMapTitle">Select District</span>
+        </div>
+        <div id="districtMapContainer">
+          <svg id="districtMap" viewBox="0 0 360 420" class="map-india-outline"
+               aria-label="District map of selected state">
+          </svg>
+          <div class="map-tooltip" id="districtTooltip">
+            <div class="tt-name" id="dtName"></div>
+            <div class="tt-hint">Click to select</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="map-legend">
+        <span><span class="legend-dot" style="background:#6B8F58"></span>Click state</span>
+        <span><span class="legend-dot" style="background:#D4A017"></span>Hover</span>
+        <span><span class="legend-dot" style="background:#B8421F"></span>Selected</span>
+      </div>
+      <div class="selected-banner" id="selectedBanner">
+        <div class="sb-left">
+          <span class="sb-pin">📍</span>
+          <div>
+            <span class="sb-pre">Selected</span>
+            <strong id="selectedStateLabel">—</strong>
+          </div>
+        </div>
+        <button class="clear-btn" id="clearSelection" title="Clear">
+          <svg viewBox="0 0 14 14" fill="none" width="12" height="12">
+            <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORM + RESULTS PANEL -->
+  <section class="panel form-panel glass-panel">
+    <div class="panel-header">
+      <div class="panel-title-group">
+        <span class="panel-icon-bubble form-icon-bubble">🌾</span>
+        <div>
+          <h2>Yield Forecast</h2>
+          <p class="panel-sub">Fill details &amp; predict instantly</p>
+        </div>
+      </div>
+      <div class="step-pills" id="stepPills">
+        <span class="step-pill active" data-step="1">1 Region</span>
+        <span class="step-pill" data-step="2">2 Crop</span>
+        <span class="step-pill" data-step="3">3 Result</span>
+      </div>
+    </div>
+    <form id="predictForm" class="form-body" autocomplete="off">
+      <div class="field-row">
+        <div class="field">
+          <label for="stateSelect"><span class="field-icon">🏛️</span> State</label>
+          <div class="select-wrap">
+            <select id="stateSelect" required>
+              <option value="">Choose state…</option>
+              {% for s in states %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="districtSelect"><span class="field-icon">📌</span> District</label>
+          <div class="select-wrap">
+            <select id="districtSelect" required disabled>
+              <option value="">Select state first…</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label><span class="field-icon">🌦️</span> Season</label>
+          <div class="select-wrap">
+            <select id="seasonSelect" required>
+              <option value="">Choose season…</option>
+            </select>
+          </div>
+          <div class="season-pills" id="seasonPills"></div>
+        </div>
+        <div class="field">
+          <label for="cropSelect"><span class="field-icon">🌿</span> Crop</label>
+          <div class="select-wrap">
+            <select id="cropSelect" required disabled>
+              <option value="">Select season first…</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="areaInput"><span class="field-icon">📐</span> Area Sown <span class="opt">ha</span></label>
+          <div class="input-wrap">
+            <input type="number" id="areaInput" min="0.1" step="0.1" placeholder="e.g. 2.5" required>
+            <span class="input-suffix">ha</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="rainfallInput"><span class="field-icon">🌧️</span> Rainfall <span class="opt">mm, optional</span></label>
+          <div class="input-wrap">
+            <input type="number" id="rainfallInput" min="0" step="1" placeholder="Auto from region">
+            <span class="input-suffix">mm</span>
+          </div>
+        </div>
+      </div>
+      <div class="submit-row">
+        <button type="submit" class="btn btn-primary" id="predictBtn">
+          <span class="btn-icon">🔮</span><span class="btn-label">Predict Yield</span><span class="btn-shimmer"></span>
+        </button>
+        <button type="button" class="btn btn-secondary" id="recommendBtn">
+          <span class="btn-icon">🏆</span><span class="btn-label">Best Crop</span><span class="btn-shimmer"></span>
+        </button>
+      </div>
+    </form>
+
+    <!-- RESULTS AREA -->
+    <div id="resultsArea">
+      <div class="empty-state">
+        <div class="empty-orb"></div>
+        <div class="empty-icon">🌱</div>
+        <strong>Your forecast appears here</strong>
+        <p>Click a state → click a district → choose crop &amp; season → hit <em>Predict Yield</em>.</p>
+        <div class="empty-features">
+          <span>📊 kg/ha estimate</span><span>🎯 90% CI range</span>
+          <span>🏆 Crop ranking</span><span>📈 Trend graphs</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREDICTION ANALYSIS CHARTS — canvas-based, populated by real ML model data -->
+    <div id="predictionCharts" style="display:none; padding:0 20px 24px;">
+      <div class="pred-charts-title">📊 Prediction Analysis Graphs</div>
+
+      <!-- Row 1: Sensitivity charts -->
+      <div class="pred-charts-row">
+        <div class="pred-chart-card">
+          <div class="pred-chart-label">
+            <span class="pcl-icon">📊</span>
+            <span>Yield vs Area Sensitivity</span>
+            <span class="pcl-badge">Real RF Model</span>
+          </div>
+          <div class="pred-chart-body"><canvas id="yieldSensChart"></canvas></div>
+          <div class="pred-chart-desc">How predicted yield changes as you vary the area sown — using your exact crop, district and season.</div>
+        </div>
+        <div class="pred-chart-card">
+          <div class="pred-chart-label">
+            <span class="pcl-icon">🌧️</span>
+            <span>Rainfall Impact on Yield</span>
+            <span class="pcl-badge">Real RF Model</span>
+          </div>
+          <div class="pred-chart-body"><canvas id="rainfallImpactChart"></canvas></div>
+          <div class="pred-chart-desc">How predicted yield responds to different rainfall levels for this crop and location.</div>
+        </div>
+      </div>
+
+      <!-- Row 2: Crop comparison + Year trend -->
+      <div class="pred-charts-row" style="margin-top:14px;">
+        <div class="pred-chart-card">
+          <div class="pred-chart-label">
+            <span class="pcl-icon">🏆</span>
+            <span>All Crops Comparison</span>
+            <span class="pcl-badge">This Season</span>
+          </div>
+          <div class="pred-chart-body pred-chart-body-tall"><canvas id="cropCompareChart"></canvas></div>
+          <div class="pred-chart-desc">Predicted yield for all available crops in <span id="pcCropCtx">this district and season</span>.</div>
+        </div>
+        <div class="pred-chart-card">
+          <div class="pred-chart-label">
+            <span class="pcl-icon">📈</span>
+            <span>Yield Trend Over Years</span>
+            <span class="pcl-badge">2008–2023</span>
+          </div>
+          <div class="pred-chart-body pred-chart-body-tall"><canvas id="yieldTrendPredChart"></canvas></div>
+          <div class="pred-chart-desc">How yield for <span id="pcTrendCtx">this crop</span> has trended year-on-year in this location.</div>
+        </div>
+      </div>
+
+      <!-- Row 3: Season comparison + Confidence distribution -->
+      <div class="pred-charts-row" style="margin-top:14px;">
+        <div class="pred-chart-card">
+          <div class="pred-chart-label">
+            <span class="pcl-icon">🗓️</span>
+            <span>Season Comparison</span>
+            <span class="pcl-badge">All 4 Seasons</span>
+          </div>
+          <div class="pred-chart-body"><canvas id="seasonCompareChart"></canvas></div>
+          <div class="pred-chart-desc">Predicted yield for <span id="pcSeasonCtx">this crop</span> across all 4 seasons in this district.</div>
+        </div>
+        <div class="pred-chart-card">
+          <div class="pred-chart-label">
+            <span class="pcl-icon">🌲</span>
+            <span>Forest Prediction Range</span>
+            <span class="pcl-badge">Confidence</span>
+          </div>
+          <div class="pred-chart-body"><canvas id="confidenceChart"></canvas></div>
+          <div class="pred-chart-desc">Distribution of yield estimates from all 100 decision trees — shows model uncertainty.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- WEATHER PANEL -->
+<section class="full-section glass-panel" id="weatherPanel" style="display:none;">
+  <div class="panel-header">
+    <div class="panel-title-group">
+      <span class="panel-icon-bubble weather-icon-bubble">⛅</span>
+      <div>
+        <h2>Weather &amp; Soil Intelligence</h2>
+        <p class="panel-sub" id="weatherLocLabel">Select a region to load data</p>
+      </div>
+    </div>
+    <div class="season-badge" id="weatherSeasonBadge">—</div>
+  </div>
+  <div class="panel-body-inner">
+    <div class="season-ctx-bar" id="weatherSeasonCtx"></div>
+    <div class="weather-grid" id="weatherGrid"></div>
+    <div class="outlook-strip-wrap">
+      <div class="section-label"><span>🌤️</span> 7-Day Forecast Outlook</div>
+      <div class="outlook-strip" id="outlookStrip"></div>
+    </div>
+    <div class="charts-3col">
+      <div class="chart-card">
+        <div class="chart-header"><span class="chart-title">🌧️ Rainfall Forecast</span><span class="chart-badge">7 Days</span></div>
+        <canvas id="outlookChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><span class="chart-title">🌡️ Temp vs Humidity</span><span class="chart-badge">7 Days</span></div>
+        <canvas id="humidityChart" height="200"></canvas>
+      </div>
+      <div class="chart-card soil-chart-card">
+        <div class="chart-header"><span class="chart-title">🟫 Soil Composition</span><span class="chart-badge">Profile</span></div>
+        <div class="soil-donut-wrap"><canvas id="soilDonutChart"></canvas></div>
+        <div class="soil-legend" id="soilLegend"></div>
+      </div>
+    </div>
+    <div class="gauges-row">
+      <div class="gauge-card">
+        <div class="gauge-title">💨 Wind Direction</div>
+        <div class="compass-wrap">
+          <svg class="compass-svg" viewBox="0 0 120 120" id="compassSvg">
+            <circle cx="60" cy="60" r="55" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+            <circle cx="60" cy="60" r="45" fill="none" stroke="var(--cream-dark)" stroke-width="1"/>
+            <text x="60" y="14" text-anchor="middle" font-size="9" font-weight="700" fill="var(--terra)" font-family="Inter,sans-serif">N</text>
+            <text x="107" y="64" text-anchor="middle" font-size="9" fill="var(--soil-light)" font-family="Inter,sans-serif">E</text>
+            <text x="60" y="112" text-anchor="middle" font-size="9" fill="var(--soil-light)" font-family="Inter,sans-serif">S</text>
+            <text x="13" y="64" text-anchor="middle" font-size="9" fill="var(--soil-light)" font-family="Inter,sans-serif">W</text>
+            <g id="compassNeedle" transform="rotate(0 60 60)">
+              <polygon points="60,18 56,60 60,52 64,60" fill="var(--terra)"/>
+              <polygon points="60,102 56,60 60,68 64,60" fill="var(--cream-dark)"/>
+              <circle cx="60" cy="60" r="5" fill="var(--soil)" stroke="var(--gold)" stroke-width="1.5"/>
+            </g>
+          </svg>
+          <div class="compass-speed" id="compassSpeed">— km/h</div>
+        </div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-title">☀️ Solar Radiation</div>
+        <div class="arc-gauge-wrap">
+          <svg class="arc-gauge-svg" viewBox="0 0 160 100" id="sunArcSvg">
+            <defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#5B8AA6"/><stop offset="50%" stop-color="#D4A017"/><stop offset="100%" stop-color="#C1502E"/>
+            </linearGradient></defs>
+            <path d="M 10 90 A 70 70 0 0 1 150 90" fill="none" stroke="var(--cream-dark)" stroke-width="10" stroke-linecap="round"/>
+            <path d="M 10 90 A 70 70 0 0 1 150 90" fill="none" stroke="url(#sunGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 220" id="sunArcFill"/>
+            <text x="80" y="76" text-anchor="middle" font-size="22" font-weight="700" fill="var(--soil)" font-family="JetBrains Mono,monospace" id="sunHrsText">—</text>
+            <text x="80" y="88" text-anchor="middle" font-size="9" fill="var(--soil-light)" font-family="Inter,sans-serif">hrs/day</text>
+          </svg>
+          <div class="arc-labels"><span>0h</span><span>6h</span><span>12h</span></div>
+        </div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-title">💧 Humidity Gauge</div>
+        <div class="liquid-gauge-wrap">
+          <svg class="liquid-svg" viewBox="0 0 120 140" id="humidSvg">
+            <defs>
+              <clipPath id="dropClip"><path d="M60 8C60 8 15 68 15 95C15 120 35 135 60 135C85 135 105 120 105 95C105 68 60 8 60 8Z"/></clipPath>
+              <linearGradient id="liquidGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#7BB5D4"/><stop offset="100%" stop-color="#3D7FA6"/>
+              </linearGradient>
+            </defs>
+            <path d="M60 8C60 8 15 68 15 95C15 120 35 135 60 135C85 135 105 120 105 95C105 68 60 8 60 8Z" fill="none" stroke="var(--sky)" stroke-width="2" opacity="0.4"/>
+            <rect x="0" y="135" width="120" height="135" fill="url(#liquidGrad)" clip-path="url(#dropClip)" id="liquidRect"/>
+            <text x="60" y="100" text-anchor="middle" font-size="22" font-weight="700" fill="white" font-family="JetBrains Mono,monospace" id="humidText">—</text>
+            <text x="60" y="114" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.8)" font-family="Inter,sans-serif">humidity</text>
+          </svg>
+        </div>
+      </div>
+      <div class="gauge-card">
+        <div class="gauge-title">🌍 Soil Types</div>
+        <div class="soil-types-list" id="soilTypesList"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TREND PANEL -->
+<section class="full-section glass-panel" id="trendPanel" style="display:none;">
+  <div class="panel-header">
+    <div class="panel-title-group">
+      <span class="panel-icon-bubble trend-icon-bubble">📈</span>
+      <div>
+        <h2>Historical Yield Analytics</h2>
+        <p class="panel-sub" id="trendSubLabel">Select a state to explore trends</p>
+      </div>
+    </div>
+    <div class="tabs" id="trendTabs">
+      <button class="active" data-mode="state">By State</button>
+      <button data-mode="national">National</button>
+    </div>
+  </div>
+  <div class="panel-body-inner">
+    <div class="charts-2col">
+      <div class="chart-card trend-chart-card">
+        <div class="chart-header">
+          <span class="chart-title" id="trendTitle">Yield trend over years</span>
+          <div class="chart-controls">
+            <button class="chart-btn active" data-chart-type="line">Line</button>
+            <button class="chart-btn" data-chart-type="bar">Bar</button>
+          </div>
+        </div>
+        <canvas id="trendChart" height="240"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><span class="chart-title">Season Share</span><span class="chart-badge">Distribution</span></div>
+        <canvas id="pieChart" height="240"></canvas>
+      </div>
+    </div>
+    <div class="charts-3col" style="margin-top:14px;">
+      <div class="chart-card">
+        <div class="chart-header"><span class="chart-title">🌾 Top Crops by Yield</span><span class="chart-badge">Ranked</span></div>
+        <canvas id="topCropsChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><span class="chart-title" id="yoyChartTitle">📉 Year-on-Year Growth</span><span class="chart-badge" id="yoyChartBadge">% Change</span></div>
+        <canvas id="yoyChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><span class="chart-title">🗓️ Seasonal Pattern</span><span class="chart-badge">Radar</span></div>
+        <canvas id="radarChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand-row">
+      <span style="font-size:22px">🌾</span>
+      <span class="footer-brand-name">AgriForecast</span>
+      <span class="footer-tagline">— Crop Yield Intelligence for India</span>
+    </div>
+    <div class="footer-tech-strip">
+      <span class="tech-tag">🐍 Python 3</span><span class="tech-tag">🌲 Random Forest</span>
+      <span class="tech-tag">⚗️ Flask</span><span class="tech-tag">📊 Matplotlib</span>
+      <span class="tech-tag">🗺️ SVG Maps</span><span class="tech-tag">🤖 Scikit-learn</span>
+    </div>
+    <div class="footer-cin">CIN: U62099PN2023PTC218917 · AgriForecast v4 · Model R² {{ '%.1f' % (metrics.r2*100) }}% · {{ year_range[0] }}–{{ year_range[1] }} Training Data</div>
+  </div>
+</footer>
+
+<!-- JS loaded in order: map → charts → app -->
+<script src="{{ url_for('static', filename='js/india-map.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
