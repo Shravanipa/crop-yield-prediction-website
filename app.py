@@ -19,7 +19,15 @@ app      = Flask(__name__)
 app.secret_key = os.environ.get("AGRIFORECAST_SECRET_KEY", "agriforecast-dev-secret-change-me")
 
 # ── Load model ───────────────────────────────────────────────────────────────
-model    = joblib.load(os.path.join(BASE_DIR, "model", "yield_model.joblib"))
+MODEL_URL = "https://github.com/Shravanipa/crop-yield-prediction-website/releases/download/v1.0/yield_model.joblib"
+MODEL_PATH = os.path.join(BASE_DIR, "model", "yield_model.joblib")
+
+if not os.path.exists(MODEL_PATH):
+    import urllib.request
+    os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+    urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+
+model = joblib.load(MODEL_PATH)
 metadata = joblib.load(os.path.join(BASE_DIR, "model", "metadata.joblib"))
 
 # ── Lightweight auth (JSON file user store — no external DB required) ───────
